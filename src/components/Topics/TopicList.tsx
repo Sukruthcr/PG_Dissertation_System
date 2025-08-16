@@ -9,6 +9,7 @@ interface TopicListProps {
   onCreateTopic?: () => void;
   onViewTopic: (topic: Topic) => void;
   onEditTopic?: (topic: Topic) => void;
+  onExport?: () => void;
 }
 
 export const TopicList: React.FC<TopicListProps> = ({
@@ -17,6 +18,7 @@ export const TopicList: React.FC<TopicListProps> = ({
   onCreateTopic,
   onViewTopic,
   onEditTopic,
+  onExport,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -54,7 +56,10 @@ export const TopicList: React.FC<TopicListProps> = ({
           </p>
         </div>
         <div className="flex space-x-3">
-          <button className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+          <button 
+            onClick={onExport}
+            className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
             <Download className="h-4 w-4 mr-2" />
             Export
           </button>

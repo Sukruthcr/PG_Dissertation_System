@@ -5,12 +5,23 @@ import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { TopicList } from './components/Topics/TopicList';
+import { TopicDetailModal } from './components/Topics/TopicDetailModal';
+import { TopicForm } from './components/Topics/TopicForm';
+import { ProgressTracker } from './components/Progress/ProgressTracker';
+import { PublicationManager } from './components/Publications/PublicationManager';
+import { UserManagement } from './components/Users/UserManagement';
+import { ApprovalWorkflow } from './components/Approvals/ApprovalWorkflow';
+import { exportTopicsToCSV, generateTopicReport } from './utils/exportUtils';
 import { useAuth } from './hooks/useAuth';
 import { Topic } from './types';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const [activeView, setActiveView] = useState('dashboard');
+  const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  const [showTopicDetail, setShowTopicDetail] = useState(false);
+  const [showTopicForm, setShowTopicForm] = useState(false);
+  const [editingTopic, setEditingTopic] = useState<Topic | null>(null);
 
   // Mock topics data
   const mockTopics: Topic[] = [
@@ -91,18 +102,43 @@ const AppContent: React.FC = () => {
   };
 
   const handleViewTopic = (topic: Topic) => {
-    console.log('Viewing topic:', topic);
-    // In a real app, this would open a detailed view or modal
+    setSelectedTopic(topic);
+    setShowTopicDetail(true);
   };
 
   const handleEditTopic = (topic: Topic) => {
-    console.log('Editing topic:', topic);
-    // In a real app, this would open an edit form
+    setEditingTopic(topic);
+    setShowTopicForm(true);
   };
 
   const handleCreateTopic = () => {
-    console.log('Creating new topic');
-    // In a real app, this would open a create topic form
+    setEditingTopic(null);
+    setShowTopicForm(true);
+  };
+
+  const handleSaveTopic = (topicData: Partial<Topic>) => {
+    console.log('Saving topic:', topicData);
+    // In real app, this would save to backend
+    // For now, just update the mock data
+    if (editingTopic) {
+      // Update existing topic
+      const updatedTopics = mockTopics.map(t => 
+        t.id === editingTopic.id ? { ...t, ...topicData } : t
+      );
+      console.log('Updated topics:', updatedTopics);
+    } else {
+      // Add new topic
+      const newTopic = { ...topicData } as Topic;
+      console.log('New topic:', newTopic);
+    }
+  };
+
+  const handleExportTopics = () => {
+    exportTopicsToCSV(mockTopics);
+  };
+
+  const handleGenerateReport = (topic: Topic) => {
+    generateTopicReport(topic);
   };
 
   const renderContent = () => {
@@ -113,21 +149,50 @@ const AppContent: React.FC = () => {
       case 'topics':
       case 'my-topic':
         return (
-          <TopicList
-            topics={mockTopics}
-            userRole={user?.role || 'student'}
-            onCreateTopic={handleCreateTopic}
-            onViewTopic={handleViewTopic}
-            onEditTopic={handleEditTopic}
-          />
+          <>
+            <TopicList
+              topics={mockTopics}
+              userRole={user?.role || 'student'}
+              onCreateTopic={handleCreateTopic}
+              onViewTopic={handleViewTopic}
+              onEditTopic={handleEditTopic}
+              onExport={handleExportTopics}
+            />
+            
+            {/* Topic Detail Modal */}
+            {selectedTopic && (
+              <TopicDetailModal
+                topic={selectedTopic}
+                isOpen={showTopicDetail}
+                onClose={() => {
+                  setShowTopicDetail(false);
+                  setSelectedTopic(null);
+                }}
+                onEdit={() => {
+                  setShowTopicDetail(false);
+                  handleEditTopic(selectedTopic);
+                }}
+                userRole={user?.role || 'student'}
+              />
+            )}
+
+            {/* Topic Form Modal */}
+            <TopicForm
+              topic={editingTopic || undefined}
+              isOpen={showTopicForm}
+              onClose={() => {
+                setShowTopicForm(false);
+                setEditingTopic(null);
+              }}
+              onSave={handleSaveTopic}
+              isEditing={!!editingTopic}
+            />
+          </>
         );
       
       case 'users':
         return (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">User Management</h2>
-            <p className="text-gray-600">User management interface will be implemented here.</p>
-          </div>
+          <UserManagement userRole={user?.role || 'student'} />
         );
       
       case 'assignments':
@@ -140,26 +205,17 @@ const AppContent: React.FC = () => {
       
       case 'approvals':
         return (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Approvals</h2>
-            <p className="text-gray-600">Approval workflow interface will be implemented here.</p>
-          </div>
+          <ApprovalWorkflow userRole={user?.role || 'student'} />
         );
       
       case 'progress':
         return (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Progress Tracking</h2>
-            <p className="text-gray-600">Progress tracking interface will be implemented here.</p>
-          </div>
+          <ProgressTracker topicId="1" userRole={user?.role || 'student'} />
         );
       
       case 'publications':
         return (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Publications</h2>
-            <p className="text-gray-600">Publication management interface will be implemented here.</p>
-          </div>
+          <PublicationManager topicId="1" userRole={user?.role || 'student'} />
         );
       
       case 'analytics':
