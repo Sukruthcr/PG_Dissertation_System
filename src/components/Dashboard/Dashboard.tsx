@@ -3,19 +3,47 @@ import { DashboardStats } from './DashboardStats';
 import { RecentActivity } from './RecentActivity';
 import { QuickActions } from './QuickActions';
 import { useAuth } from '../../hooks/useAuth';
+import { useTopics } from '../../hooks/useTopics';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const { topics, getTopicsByStudent } = useTopics();
 
-  // Mock data - in a real app, this would come from your API
-  const dashboardStats = {
-    total_topics: 247,
-    active_topics: 156,
-    completed_topics: 91,
-    pending_approvals: 23,
-    overdue_milestones: 8,
-    publications: 45,
+  // Calculate real stats based on actual data
+  const getUserStats = () => {
+    if (!user) return {
+      total_topics: 0,
+      active_topics: 0,
+      completed_topics: 0,
+      pending_approvals: 0,
+      overdue_milestones: 0,
+      publications: 0,
+    };
+
+    switch (user.role) {
+      case 'student':
+        const studentTopics = getTopicsByStudent(user.student_id || user.id);
+        return {
+          total_topics: studentTopics.length,
+          active_topics: studentTopics.filter(t => t.status === 'in_progress' || t.status === 'approved').length,
+          completed_topics: studentTopics.filter(t => t.status === 'completed').length,
+          pending_approvals: studentTopics.filter(t => t.status === 'submitted' || t.status === 'under_review').length,
+          overdue_milestones: 2, // Mock for now
+          publications: 3, // Mock for now
+        };
+      default:
+        return {
+          total_topics: topics.length,
+          active_topics: topics.filter(t => t.status === 'in_progress' || t.status === 'approved').length,
+          completed_topics: topics.filter(t => t.status === 'completed').length,
+          pending_approvals: topics.filter(t => t.status === 'submitted' || t.status === 'under_review').length,
+          overdue_milestones: 8,
+          publications: 45,
+        };
+    }
   };
+
+  const dashboardStats = getUserStats();
 
   const recentActivities = [
     {

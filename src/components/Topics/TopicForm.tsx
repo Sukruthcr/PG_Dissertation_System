@@ -71,17 +71,9 @@ export const TopicForm: React.FC<TopicFormProps> = ({
       updated_at: new Date().toISOString(),
     };
 
-    if (!isEditing) {
-      topicData.id = `topic_${Date.now()}`;
-      topicData.student_id = 'current_student'; // In real app, get from auth
-      topicData.status = 'submitted';
-      topicData.submitted_at = new Date().toISOString();
-      topicData.created_at = new Date().toISOString();
-      topicData.similarity_score = Math.floor(Math.random() * 30) + 10; // Mock similarity check
-    }
+    // The useTopics hook will handle setting the proper fields for new topics
 
     onSave(topicData);
-    onClose();
   };
 
   const handleInputChange = (field: string, value: string | boolean) => {
