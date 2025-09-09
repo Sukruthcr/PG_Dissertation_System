@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 export const Header: React.FC = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const { user, logout } = useAuth();
 
   const notifications = [
@@ -25,6 +26,18 @@ export const Header: React.FC = () => {
     return colors[role as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      alert(`Searching for: "${searchTerm}"\n\nIn a real application, this would search across topics, students, and guides.`);
+    }
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    alert(`Notification clicked: ${notification.title}\n\nThis would navigate to the relevant page or show more details.`);
+    setShowNotifications(false);
+  };
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,14 +54,16 @@ export const Header: React.FC = () => {
 
           {/* Search Bar */}
           <div className="flex-1 max-w-2xl mx-8">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <input
                 type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search topics, students, guides..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-            </div>
+            </form>
           </div>
 
           {/* Right side - Notifications and User */}
@@ -72,14 +87,24 @@ export const Header: React.FC = () => {
                   </div>
                   <div className="max-h-80 overflow-y-auto">
                     {notifications.map((notification) => (
-                      <div key={notification.id} className="p-4 hover:bg-gray-50 border-b border-gray-100">
+                      <div 
+                        key={notification.id} 
+                        className="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer"
+                        onClick={() => handleNotificationClick(notification)}
+                      >
                         <p className="text-sm font-medium text-gray-900">{notification.title}</p>
                         <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
                       </div>
                     ))}
                   </div>
                   <div className="p-4 border-t border-gray-200">
-                    <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                    <button 
+                      onClick={() => {
+                        alert('All notifications view would open here');
+                        setShowNotifications(false);
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    >
                       View all notifications
                     </button>
                   </div>
@@ -107,17 +132,32 @@ export const Header: React.FC = () => {
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                   <div className="p-2">
-                    <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md flex items-center">
+                    <button 
+                      onClick={() => {
+                        alert('Profile page would open here');
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md flex items-center"
+                    >
                       <User className="h-4 w-4 mr-2" />
                       Profile
                     </button>
-                    <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md flex items-center">
+                    <button 
+                      onClick={() => {
+                        alert('Settings page would open here');
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md flex items-center"
+                    >
                       <Settings className="h-4 w-4 mr-2" />
                       Settings
                     </button>
                     <hr className="my-2" />
                     <button
-                      onClick={logout}
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        logout();
+                      }}
                       className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md flex items-center"
                     >
                       <LogOut className="h-4 w-4 mr-2" />

@@ -244,6 +244,12 @@ const PublicationForm: React.FC<PublicationFormProps> = ({ isOpen, onClose, onSa
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.title.trim() || !formData.authors.trim()) {
+      alert('Please fill in all required fields (Title and Authors)');
+      return;
+    }
+    
     const publicationData = {
       ...formData,
       topic_id: topicId,
@@ -258,8 +264,11 @@ const PublicationForm: React.FC<PublicationFormProps> = ({ isOpen, onClose, onSa
       <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">Add Publication</h2>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600">
-            <X className="h-5 w-5" />
+          <button 
+            onClick={onClose} 
+            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+          >
+            ✕
           </button>
         </div>
 
