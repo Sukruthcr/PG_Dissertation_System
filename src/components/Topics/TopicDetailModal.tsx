@@ -250,5 +250,3 @@ export const TopicDetailModal: React.FC<TopicDetailModalProps> = ({
     </div>
   );
 };
-</parameter>
-</invoke>
