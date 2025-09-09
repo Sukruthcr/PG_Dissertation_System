@@ -12,30 +12,30 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ userRole, onActionCl
       case 'admin':
       case 'coordinator':
         return [
-          { id: 'create-user', label: 'Add User', icon: Plus, color: 'blue' },
-          { id: 'review-topics', label: 'Review Topics', icon: FileText, color: 'green' },
-          { id: 'assign-guides', label: 'Assign Guides', icon: Users, color: 'purple' },
-          { id: 'view-analytics', label: 'View Reports', icon: Search, color: 'orange' },
+          { id: 'create-user', label: 'Add User', icon: Plus, color: 'blue', action: () => alert('Add User functionality would open here') },
+          { id: 'review-topics', label: 'Review Topics', icon: FileText, color: 'green', action: () => alert('Review Topics functionality would open here') },
+          { id: 'assign-guides', label: 'Assign Guides', icon: Users, color: 'purple', action: () => alert('Assign Guides functionality would open here') },
+          { id: 'view-analytics', label: 'View Reports', icon: Search, color: 'orange', action: () => alert('Analytics/Reports functionality would open here') },
         ];
       
       case 'guide':
         return [
-          { id: 'review-progress', label: 'Review Progress', icon: CheckSquare, color: 'blue' },
-          { id: 'provide-feedback', label: 'Give Feedback', icon: FileText, color: 'green' },
-          { id: 'view-students', label: 'My Students', icon: Users, color: 'purple' },
+          { id: 'review-progress', label: 'Review Progress', icon: CheckSquare, color: 'blue', action: () => alert('Review Progress functionality would open here') },
+          { id: 'provide-feedback', label: 'Give Feedback', icon: FileText, color: 'green', action: () => alert('Provide Feedback functionality would open here') },
+          { id: 'view-students', label: 'My Students', icon: Users, color: 'purple', action: () => alert('My Students view would open here') },
         ];
       
       case 'student':
         return [
-          { id: 'submit-topic', label: 'Submit Topic', icon: Plus, color: 'blue' },
-          { id: 'upload-progress', label: 'Upload Progress', icon: FileText, color: 'green' },
-          { id: 'contact-guide', label: 'Contact Guide', icon: Users, color: 'purple' },
+          { id: 'submit-topic', label: 'Submit Topic', icon: Plus, color: 'blue', action: () => alert('Submit Topic form would open here') },
+          { id: 'upload-progress', label: 'Upload Progress', icon: FileText, color: 'green', action: () => alert('Upload Progress functionality would open here') },
+          { id: 'contact-guide', label: 'Contact Guide', icon: Users, color: 'purple', action: () => alert('Contact Guide functionality would open here') },
         ];
       
       default:
         return [
-          { id: 'review-pending', label: 'Review Pending', icon: CheckSquare, color: 'orange' },
-          { id: 'view-topics', label: 'View Topics', icon: FileText, color: 'blue' },
+          { id: 'review-pending', label: 'Review Pending', icon: CheckSquare, color: 'orange', action: () => alert('Review Pending items would open here') },
+          { id: 'view-topics', label: 'View Topics', icon: FileText, color: 'blue', action: () => alert('View Topics would open here') },
         ];
     }
   };
@@ -61,7 +61,7 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ userRole, onActionCl
           return (
             <button
               key={action.id}
-              onClick={() => onActionClick(action.id)}
+              onClick={() => action.action ? action.action() : onActionClick(action.id)}
               className={`flex items-center justify-center px-4 py-3 rounded-lg font-medium transition-colors ${getColorClasses(action.color)}`}
             >
               <Icon className="h-4 w-4 mr-2" />

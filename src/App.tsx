@@ -118,19 +118,10 @@ const AppContent: React.FC = () => {
 
   const handleSaveTopic = (topicData: Partial<Topic>) => {
     console.log('Saving topic:', topicData);
-    // In real app, this would save to backend
-    // For now, just update the mock data
-    if (editingTopic) {
-      // Update existing topic
-      const updatedTopics = mockTopics.map(t => 
-        t.id === editingTopic.id ? { ...t, ...topicData } : t
-      );
-      console.log('Updated topics:', updatedTopics);
-    } else {
-      // Add new topic
-      const newTopic = { ...topicData } as Topic;
-      console.log('New topic:', newTopic);
-    }
+    setShowTopicForm(false);
+    setEditingTopic(null);
+    // Show success message
+    alert(editingTopic ? 'Topic updated successfully!' : 'Topic submitted successfully!');
   };
 
   const handleExportTopics = () => {
@@ -192,7 +183,12 @@ const AppContent: React.FC = () => {
       
       case 'users':
         return (
-          <UserManagement userRole={user?.role || 'student'} />
+          <UserManagement 
+            userRole={user?.role || 'student'} 
+            onCreateUser={() => alert('Create user functionality would open here')}
+            onEditUser={(user) => alert(`Edit user: ${user.full_name}`)}
+            onDeleteUser={(user) => alert(`Delete user: ${user.full_name}`)}
+          />
         );
       
       case 'assignments':
@@ -205,7 +201,11 @@ const AppContent: React.FC = () => {
       
       case 'approvals':
         return (
-          <ApprovalWorkflow userRole={user?.role || 'student'} />
+          <ApprovalWorkflow 
+            userRole={user?.role || 'student'}
+            onApprove={(id, comment) => alert(`Approved: ${id} with comment: ${comment}`)}
+            onReject={(id, comment) => alert(`Rejected: ${id} with comment: ${comment}`)}
+          />
         );
       
       case 'progress':
@@ -215,7 +215,11 @@ const AppContent: React.FC = () => {
       
       case 'publications':
         return (
-          <PublicationManager topicId="1" userRole={user?.role || 'student'} />
+          <PublicationManager 
+            topicId="1" 
+            userRole={user?.role || 'student'}
+            onSavePublication={(data) => alert(`Publication saved: ${data.title}`)}
+          />
         );
       
       case 'analytics':

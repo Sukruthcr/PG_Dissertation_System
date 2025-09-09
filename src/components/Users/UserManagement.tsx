@@ -4,9 +4,17 @@ import { User } from '../../types';
 
 interface UserManagementProps {
   userRole: string;
+  onCreateUser: () => void;
+  onEditUser: (user: User) => void;
+  onDeleteUser: (user: User) => void;
 }
 
-export const UserManagement: React.FC<UserManagementProps> = ({ userRole }) => {
+export const UserManagement: React.FC<UserManagementProps> = ({ 
+  userRole, 
+  onCreateUser, 
+  onEditUser, 
+  onDeleteUser 
+}) => {
   const [users] = useState<User[]>([
     {
       id: '1',
@@ -79,18 +87,13 @@ export const UserManagement: React.FC<UserManagementProps> = ({ userRole }) => {
   };
 
   const handleEditUser = (user: User) => {
-    console.log('Edit user:', user);
-    // In real app, this would open edit modal
+    onEditUser(user);
   };
 
   const handleDeleteUser = (user: User) => {
-    console.log('Delete user:', user);
-    // In real app, this would show confirmation and delete
-  };
-
-  const handleCreateUser = () => {
-    console.log('Create new user');
-    // In real app, this would open create user modal
+    if (confirm(`Are you sure you want to delete ${user.full_name}?`)) {
+      onDeleteUser(user);
+    }
   };
 
   return (
@@ -103,7 +106,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ userRole }) => {
         </div>
         {(userRole === 'admin' || userRole === 'coordinator') && (
           <button
-            onClick={handleCreateUser}
+            onClick={onCreateUser}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             <Plus className="h-4 w-4 mr-2" />

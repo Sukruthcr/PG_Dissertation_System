@@ -4,9 +4,15 @@ import { Approval, Topic } from '../../types';
 
 interface ApprovalWorkflowProps {
   userRole: string;
+  onApprove: (approvalId: string, comment: string) => void;
+  onReject: (approvalId: string, comment: string) => void;
 }
 
-export const ApprovalWorkflow: React.FC<ApprovalWorkflowProps> = ({ userRole }) => {
+export const ApprovalWorkflow: React.FC<ApprovalWorkflowProps> = ({ 
+  userRole, 
+  onApprove, 
+  onReject 
+}) => {
   const [approvals] = useState<Approval[]>([
     {
       id: '1',
@@ -68,15 +74,13 @@ export const ApprovalWorkflow: React.FC<ApprovalWorkflowProps> = ({ userRole }) 
   };
 
   const handleApprove = (approvalId: string) => {
-    console.log('Approving:', approvalId, 'with comment:', comment);
-    // In real app, this would update the approval status
+    onApprove(approvalId, comment);
     setSelectedApproval(null);
     setComment('');
   };
 
   const handleReject = (approvalId: string) => {
-    console.log('Rejecting:', approvalId, 'with comment:', comment);
-    // In real app, this would update the approval status
+    onReject(approvalId, comment);
     setSelectedApproval(null);
     setComment('');
   };

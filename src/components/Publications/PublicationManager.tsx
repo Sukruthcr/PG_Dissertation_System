@@ -5,9 +5,14 @@ import { Publication } from '../../types';
 interface PublicationManagerProps {
   topicId: string;
   userRole: string;
+  onSavePublication: (data: any) => void;
 }
 
-export const PublicationManager: React.FC<PublicationManagerProps> = ({ topicId, userRole }) => {
+export const PublicationManager: React.FC<PublicationManagerProps> = ({ 
+  topicId, 
+  userRole, 
+  onSavePublication 
+}) => {
   const [publications] = useState<Publication[]>([
     {
       id: '1',
@@ -80,9 +85,8 @@ export const PublicationManager: React.FC<PublicationManagerProps> = ({ topicId,
   };
 
   const handleSavePublication = (publicationData: any) => {
-    console.log('Saving publication:', publicationData);
+    onSavePublication(publicationData);
     setShowAddForm(false);
-    // In real app, this would save to backend
   };
 
   return (

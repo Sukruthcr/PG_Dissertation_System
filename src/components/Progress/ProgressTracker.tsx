@@ -157,13 +157,26 @@ export const ProgressTracker: React.FC<ProgressTrackerProps> = ({ topicId, userR
   };
 
   const handleFileUpload = (milestoneId: string) => {
-    console.log('Upload file for milestone:', milestoneId);
-    // In real app, this would open file picker and upload to server
+    // Create a file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.accept = '.pdf,.doc,.docx,.txt,.xlsx,.ppt,.pptx';
+    
+    input.onchange = (e) => {
+      const files = (e.target as HTMLInputElement).files;
+      if (files && files.length > 0) {
+        const fileNames = Array.from(files).map(f => f.name).join(', ');
+        alert(`Files selected for milestone ${milestoneId}: ${fileNames}\n\nIn a real application, these would be uploaded to the server.`);
+      }
+    };
+    
+    input.click();
   };
 
   const handleDownloadDocument = (document: Document) => {
-    console.log('Download document:', document.name);
-    // In real app, this would download the actual file
+    // Simulate download
+    alert(`Downloading: ${document.name}\n\nIn a real application, this would download the actual file from the server.`);
   };
 
   const completedCount = milestones.filter(m => m.status === 'completed').length;
