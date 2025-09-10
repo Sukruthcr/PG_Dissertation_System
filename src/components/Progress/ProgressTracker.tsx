@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, CheckCircle, Clock, AlertTriangle, Upload, Download, MessageSquare } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, AlertTriangle, Upload, Download, MessageSquare, FileText } from 'lucide-react';
 import { ProgressMilestone, Document } from '../../types';
 
 interface ProgressTrackerProps {
