@@ -1,12 +1,15 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User } from '../types';
+import { LoginCredentials, AuthToken, AuthError } from '../types/auth';
+import { authenticateUser, validateToken, refreshToken, logout as authLogout } from '../utils/auth';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
+  error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,48 +22,72 @@ export const useAuth = () => {
   return context;
 };
 
-// Mock authentication for demo purposes
 export const useAuthProvider = (): AuthContextType => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for stored user session
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    // Check for stored user session and validate token
+    const initializeAuth = async () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        const storedToken = localStorage.getItem('auth_token');
+        
+        if (storedUser && storedToken) {
+          const token: AuthToken = JSON.parse(storedToken);
+          
+          // Validate token
+          if (validateToken(token)) {
+            setUser(JSON.parse(storedUser));
+            
+            // Refresh token if it's close to expiry (within 2 hours)
+            if (token.expiresAt - Date.now() < 2 * 60 * 60 * 1000) {
+              const newToken = refreshToken(token);
+              localStorage.setItem('auth_token', JSON.stringify(newToken));
+            }
+          } else {
+            // Token expired, clear storage
+            localStorage.removeItem('user');
+            localStorage.removeItem('auth_token');
+          }
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('auth_token');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = async (credentials: LoginCredentials): Promise<void> => {
     setLoading(true);
+    setError(null);
+    
     try {
-      // Mock login - in real app, this would call your auth API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await authenticateUser(credentials);
       
-      // Mock user data based on email
-      const mockUser: User = {
-        id: '1',
-        email,
-        full_name: email.includes('admin') ? 'System Admin' : 
-                   email.includes('guide') ? 'Dr. Jane Smith' :
-                   email.includes('student') ? 'John Doe' : 'User Name',
-        role: email.includes('admin') ? 'admin' : 
-              email.includes('guide') ? 'guide' :
-              email.includes('coordinator') ? 'coordinator' :
-              email.includes('ethics') ? 'ethics_committee' :
-              email.includes('examiner') ? 'examiner' : 'student',
-        department: 'Computer Science',
-        specialization: 'Machine Learning',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      if ('type' in result) {
+        // Authentication failed
+        const authError = result as AuthError;
+        setError(authError.message);
+        throw new Error(authError.message);
+      }
+      
+      // Authentication successful
+      const { user: authenticatedUser, token } = result;
+      
+      setUser(authenticatedUser);
+      localStorage.setItem('user', JSON.stringify(authenticatedUser));
+      localStorage.setItem('auth_token', JSON.stringify(token));
+      
     } catch (error) {
-      throw new Error('Login failed');
+      // Error is already set in setError above
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -68,7 +95,8 @@ export const useAuthProvider = (): AuthContextType => {
 
   const logout = async (): Promise<void> => {
     setUser(null);
-    localStorage.removeItem('user');
+    setError(null);
+    authLogout();
   };
 
   const updateUser = async (updates: Partial<User>): Promise<void> => {
@@ -85,6 +113,7 @@ export const useAuthProvider = (): AuthContextType => {
     login,
     logout,
     updateUser,
+    error,
   };
 };
 
