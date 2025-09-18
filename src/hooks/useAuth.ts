@@ -1,15 +1,26 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { User } from '../types';
-import { LoginCredentials, AuthToken, AuthError } from '../types/auth';
-import { authenticateUser, validateToken, refreshToken, logout as authLogout } from '../utils/auth';
+import { LoginCredentials, AuthToken, AuthError, SessionData } from '../types/auth';
+import { 
+  authenticateUser, 
+  validateToken, 
+  refreshToken, 
+  logout as authLogout,
+  getSessionData,
+  saveSessionData,
+  hasPermission
+} from '../utils/auth';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  permissions: string[];
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => Promise<void>;
+  hasPermission: (permission: string) => boolean;
   error: string | null;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,37 +36,38 @@ export const useAuth = () => {
 export const useAuthProvider = (): AuthContextType => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for stored user session and validate token
+    // Initialize authentication state from stored session
     const initializeAuth = async () => {
       try {
-        const storedUser = localStorage.getItem('user');
-        const storedToken = localStorage.getItem('auth_token');
+        const sessionData = getSessionData();
         
-        if (storedUser && storedToken) {
-          const token: AuthToken = JSON.parse(storedToken);
-          
-          // Validate token
-          if (validateToken(token)) {
-            setUser(JSON.parse(storedUser));
+        if (sessionData && sessionData.token && sessionData.user) {
+          // Validate stored token
+          if (validateToken(sessionData.token)) {
+            setUser(sessionData.user);
+            setPermissions(sessionData.permissions || []);
             
-            // Refresh token if it's close to expiry (within 2 hours)
-            if (token.expiresAt - Date.now() < 2 * 60 * 60 * 1000) {
-              const newToken = refreshToken(token);
-              localStorage.setItem('auth_token', JSON.stringify(newToken));
+            // Auto-refresh token if it's close to expiry (within 2 hours)
+            if (sessionData.token.expiresAt - Date.now() < 2 * 60 * 60 * 1000) {
+              const newToken = refreshToken(sessionData.token);
+              const updatedSessionData = {
+                ...sessionData,
+                token: newToken
+              };
+              saveSessionData(updatedSessionData);
             }
           } else {
-            // Token expired, clear storage
-            localStorage.removeItem('user');
-            localStorage.removeItem('auth_token');
+            // Token expired, clear all data
+            authLogout();
           }
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-        localStorage.removeItem('user');
-        localStorage.removeItem('auth_token');
+        authLogout();
       } finally {
         setLoading(false);
       }
@@ -79,11 +91,22 @@ export const useAuthProvider = (): AuthContextType => {
       }
       
       // Authentication successful
-      const { user: authenticatedUser, token } = result;
+      const { user: authenticatedUser, token, permissions: userPermissions } = result;
       
+      // Create session data
+      const sessionData: SessionData = {
+        token,
+        user: authenticatedUser,
+        permissions: userPermissions,
+        loginTime: new Date().toISOString()
+      };
+      
+      // Save session data securely
+      saveSessionData(sessionData);
+      
+      // Update state
       setUser(authenticatedUser);
-      localStorage.setItem('user', JSON.stringify(authenticatedUser));
-      localStorage.setItem('auth_token', JSON.stringify(token));
+      setPermissions(userPermissions);
       
     } catch (error) {
       // Error is already set in setError above
@@ -95,6 +118,7 @@ export const useAuthProvider = (): AuthContextType => {
 
   const logout = async (): Promise<void> => {
     setUser(null);
+    setPermissions([]);
     setError(null);
     authLogout();
   };
@@ -103,17 +127,34 @@ export const useAuthProvider = (): AuthContextType => {
     if (user) {
       const updatedUser = { ...user, ...updates, updated_at: new Date().toISOString() };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      // Update stored session data
+      const sessionData = getSessionData();
+      if (sessionData) {
+        const updatedSessionData = {
+          ...sessionData,
+          user: updatedUser
+        };
+        saveSessionData(updatedSessionData);
+      }
     }
+  };
+
+  const checkPermission = (permission: string): boolean => {
+    if (!user) return false;
+    return hasPermission(user.role, permission);
   };
 
   return {
     user,
     loading,
+    permissions,
     login,
     logout,
     updateUser,
+    hasPermission: checkPermission,
     error,
+    isAuthenticated: !!user,
   };
 };
 
