@@ -6,7 +6,7 @@ export const Header: React.FC = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const { user, logout } = useAuth();
+  const { user, logout, permissions } = useAuth();
 
   const notifications = [
     { id: 1, title: 'New topic approval required', time: '2 hours ago', type: 'warning' },
@@ -123,9 +123,14 @@ export const Header: React.FC = () => {
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-medium text-gray-900">{user?.full_name}</p>
-                  <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${getRoleColor(user?.role || 'student')}`}>
-                    {user?.role?.replace('_', ' ').toUpperCase()}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${getRoleColor(user?.role || 'student')}`}>
+                      {user?.role?.replace('_', ' ').toUpperCase()}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {permissions.length} permissions
+                    </span>
+                  </div>
                 </div>
               </button>
 
