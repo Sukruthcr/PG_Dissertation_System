@@ -29,11 +29,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeView, onViewChange }) =>
     const roleSpecificItems = {
       admin: [
         { id: 'users', label: 'User Management', icon: Users },
+        { id: 'onboarding', label: 'User Onboarding', icon: UserCheck },
         { id: 'topics', label: 'All Topics', icon: FileText },
         { id: 'assignments', label: 'Guide Assignments', icon: UserCheck },
         { id: 'approvals', label: 'Approvals', icon: CheckSquare },
         { id: 'publications', label: 'Publications', icon: BookOpen },
-        { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+        { id: 'analytics', label: 'Audit Logs', icon: TrendingUp },
         { id: 'settings', label: 'System Settings', icon: Settings },
       ],
       coordinator: [

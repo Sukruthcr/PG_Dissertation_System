@@ -215,6 +215,18 @@ const resetFailedAttempts = async (userId: string): Promise<void> => {
 // Main authentication function
 export const authenticateUser = async (credentials: LoginCredentials): Promise<{ user: User; token: AuthToken; permissions: string[] } | AuthError> => {
   try {
+    // Add audit log for login attempt
+    const { addAuditLog } = await import('./onboarding');
+    addAuditLog({
+      action_type: 'login_attempt',
+      target_email: credentials.email,
+      details: `Login attempt for ${credentials.role} role`,
+      metadata: {
+        attempted_role: credentials.role,
+        timestamp: new Date().toISOString(),
+      },
+    });
+
     // Simulate network delay for realistic experience
     await new Promise(resolve => setTimeout(resolve, 1500));
 
@@ -267,6 +279,16 @@ export const authenticateUser = async (credentials: LoginCredentials): Promise<{
     const isPasswordValid = await verifyPassword(credentials.password, credentials.email, dbUser.passwordHash);
     if (!isPasswordValid) {
       await lockAccount(dbUser.id);
+      // Add failed login audit log
+      addAuditLog({
+        action_type: 'login_failed',
+        target_email: credentials.email,
+        details: `Failed login attempt - invalid password`,
+        metadata: {
+          attempted_role: credentials.role,
+          reason: 'invalid_password',
+        },
+      });
       return {
         type: 'INVALID_CREDENTIALS',
         message: 'Invalid credentials. Please check your email and password.'
@@ -276,6 +298,18 @@ export const authenticateUser = async (credentials: LoginCredentials): Promise<{
     // Critical: Verify role matches (prevent role spoofing)
     if (dbUser.role !== credentials.role) {
       await lockAccount(dbUser.id);
+      // Add role spoofing audit log
+      addAuditLog({
+        action_type: 'login_failed',
+        user_id: dbUser.id,
+        target_email: credentials.email,
+        details: `Role spoofing attempt - user tried to access ${credentials.role} but assigned ${dbUser.role}`,
+        metadata: {
+          assigned_role: dbUser.role,
+          attempted_role: credentials.role,
+          reason: 'role_spoofing',
+        },
+      });
       return {
         type: 'ROLE_MISMATCH',
         message: `Access denied. Your account is not authorized for the ${credentials.role.replace('_', ' ')} role. Please select the correct role or contact your administrator.`
@@ -284,6 +318,19 @@ export const authenticateUser = async (credentials: LoginCredentials): Promise<{
 
     // Reset failed login attempts on successful authentication
     await resetFailedAttempts(dbUser.id);
+
+    // Add successful login audit log
+    addAuditLog({
+      action_type: 'login_success',
+      user_id: dbUser.id,
+      target_email: dbUser.email,
+      details: `Successful login as ${dbUser.role}`,
+      metadata: {
+        role: dbUser.role,
+        full_name: dbUser.full_name,
+        session_start: new Date().toISOString(),
+      },
+    });
 
     // Generate secure session token
     const token: AuthToken = {

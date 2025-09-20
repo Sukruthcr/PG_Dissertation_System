@@ -14,6 +14,8 @@ import { ApprovalWorkflow } from './components/Approvals/ApprovalWorkflow';
 import { exportTopicsToCSV, generateTopicReport } from './utils/exportUtils';
 import { useAuth } from './hooks/useAuth';
 import { useTopics } from './hooks/useTopics';
+import { OnboardingDashboard } from './components/Onboarding/OnboardingDashboard';
+import { AuditLogViewer } from './components/Onboarding/AuditLogViewer';
 import { Topic } from './types';
 
 const AppContent: React.FC = () => {
@@ -189,10 +191,12 @@ const AppContent: React.FC = () => {
       
       case 'analytics':
         return (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Analytics & Reports</h2>
-            <p className="text-gray-600">Analytics dashboard will be implemented here.</p>
-          </div>
+          <AuditLogViewer />
+        );
+      
+      case 'onboarding':
+        return (
+          <OnboardingDashboard />
         );
       
       default:

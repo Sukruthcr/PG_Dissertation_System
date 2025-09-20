@@ -289,6 +289,10 @@ export const LoginForm: React.FC = () => {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
+              Need an account?{' '}
+              <a href="/register" className="text-blue-600 hover:text-blue-700 font-medium mr-4">
+                Register Here
+              </a>
               Need help? Contact{' '}
               <a href="mailto:support@university.edu" className="text-blue-600 hover:text-blue-700 font-medium">
                 IT Support
